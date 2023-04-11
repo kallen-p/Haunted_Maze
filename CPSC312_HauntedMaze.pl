@@ -83,7 +83,7 @@ print_location :-
     current_room(Current),
     room(Current, Name, Description),
     write(Name), nl,
-    write(Description), nl.
+    write(Description), nl, nl.
 
 % Define a predicate to change the current room
 change_room(NewRoom) :-
@@ -95,16 +95,25 @@ process_input([quit]) :-
     write('Exiting game...'), false.
 
 process_input([help]) :-
-    write('Type one of the 4 directions (north, south, east, west) to move to a connected room.'), nl, nl, !.
+    current_room(Current),
+    findall(Direction, connected(Direction, Current, _), Directions),
+    write('Write ''go'' then a driection to move to another room. Available directions: '), write(Directions), nl, nl, !.
+
 
 process_input([go, Direction]) :-
     current_room(Current),
     connected(Direction, Current, NewRoom),
     change_room(NewRoom),
     write('You have moved to the '), write(NewRoom), nl, nl.
-
-process_input([]) :-
+	
+process_input([_]) :-
     write('Huh?'), nl, nl.
+	
+process_input([go, _]) :-
+    print('No exit that direction.'), nl,nl.
+
+process_input([_,_]) :-
+	write('Huh?'), nl, nl.
 
 % Define a predicate to read user input and process it
 get_input :-
