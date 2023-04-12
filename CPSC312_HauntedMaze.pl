@@ -74,8 +74,10 @@ connected(up, garden, balcony).
 
 
 
-% Define the starting room for the player
+% Define the dynamic predicates needed for the game.
 :- dynamic current_room/1.
+:- dynamic treasure_room/1.
+:- dynamic treasure_found/0.
 
 
 % Define a predicate to print the current location
@@ -92,14 +94,23 @@ change_room(NewRoom) :-
 
 % Define a predicate to handle user input
 process_input([quit]) :-
-    write('Exiting game...'), false.
+    write('Exiting game...'), throw(0), !.
 
 process_input([help]) :-
     current_room(Current),
     findall(Direction, connected(Direction, Current, _), Directions),
     write('Write ''go'' then a driection to move to another room. Available directions: '), write(Directions), nl, nl, !.
 
-
+process_input([search, room]) :-
+    % Check if the current room is the treasure room
+    current_room(Current),
+    treasure_room(TreasureRoom),
+    (Current = TreasureRoom ->
+        assert(treasure_found),
+        write('You have found the treasure, you better get out of here before it''s too late!');
+        write('You search the room but find nothing of interest.')), 
+	nl, nl,!.
+		
 process_input([go, Direction]) :-
     current_room(Current),
     connected(Direction, Current, NewRoom),
@@ -125,7 +136,13 @@ get_input :-
 
 % Define a predicate to start the game
 play :-
+	%(treasure_found -> retract(treasure_found)),
 	retractall(current_room(_)),
+	retractall(treasure_room(_)),
+	findall(Room, room(Room, _, _), Rooms),
+    random_member(TreasureRoom, Rooms),
+    assertz(treasure_room(TreasureRoom)),
+	%write(treasure_room(TreasureRoom)),
 	assertz(current_room(front_entrance)),
     print_location,
     get_input.
