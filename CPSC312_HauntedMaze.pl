@@ -7,6 +7,7 @@ room(staircase, 'Staircase', 'You stand at the bottom of a large staircase. You 
 room(front_entrance, 'Front Entrance', 'You are in the front entrance. The old wooden door behind you doesn''t do much to keep out the howling wind...', 'cold.').
 room(pool, 'Pool', 'You stand by the pool. So much grime has built on the surface you can''t see what lurks below...', 'that is slippery when wet.').
 room(dining_hall, 'Dining Hall', 'You are in the dining hall. A large rectangular table streches the length of the room, there was once many people who gathered here...', 'where echos of laughter can still be heard.').
+room(monster_room, 'Monster Room', 'You are in a dark room. You can hear growling and snarling coming from the shadows...', 'that is filled with danger.').
 
 %Basement 
 room(boiler_room, 'Boiler Room', 'You have found the boiler room. The low rumble of the boiler sounds like the growl of a beast...', 'as hot as hell itself.').
@@ -71,21 +72,37 @@ connected(east, balcony, master_bedroom).
 connected(down, balcony, garden).
 connected(up, garden, balcony).
 
-
+connected(east, library, monster_room).
+connected(west, monster_room, library).
 
 
 % Define the dynamic predicates needed for the game.
 :- dynamic current_room/1.
 :- dynamic treasure_room/1.
 :- dynamic treasure_found/0.
+:- dynamic monster_alive/0.
 
+% Define a predicate to start game with monster monster_alive
+start_game_with_monster :-
+    assertz(monster_alive).
 
 % Define a predicate to print the current location
 print_location :-
     current_room(Current),
+    (Current = monster_room, monster_alive -> write('You are in the monster room. The monster is alive and attacks you!'), nl ; true),
     room(Current, Name, Description, _),
     write(Name), nl,
     write(Description), nl, nl.
+
+% Define a predicate to let the player attack the monster
+attack_monster :-
+    (current_room(monster_room), monster_alive ->
+        write('You attack the monster!'), nl,
+        retract(monster_alive),
+        write('The monster is defeated!'), nl
+    ;   write('There is no monster to attack.'), nl
+    ).
+
 
 % Define a predicate to change the current room
 change_room(NewRoom) :-
@@ -136,6 +153,9 @@ process_input([go, _]) :-
 
 process_input([_,_]) :-
 	write('Huh?'), nl, nl.
+
+process_input([attack]) :-
+    attack_monster.
 
 % Define a predicate to read user input and process it
 get_input :-
