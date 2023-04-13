@@ -145,6 +145,9 @@ process_input([leave]) :-
 		write('You win!'), throw(1);
 		write('You can''t leave yet! You need to find the treausre first, no matter the risks.'), nl,nl, !).
 	
+process_input([attack]) :-
+attack_monster.
+
 process_input([_]) :-
     write('Huh?'), nl, nl.
 	
@@ -153,9 +156,6 @@ process_input([go, _]) :-
 
 process_input([_,_]) :-
 	write('Huh?'), nl, nl.
-
-process_input([attack]) :-
-    attack_monster.
 
 % Define a predicate to read user input and process it
 get_input :-
@@ -174,6 +174,7 @@ play :-
     random_member(TreasureRoom, Rooms),
     assertz(treasure_room(TreasureRoom)),
 	room(TreasureRoom, _, _, Hint),
+    start_game_with_monster,
 	write('There are rumors that there is treasure hidden somewhere in this old manor but no one has been brave enough to search for it.'),nl,
 	write('You figure that since the building has been abandoned for decades there would be no harm checking to see if the rumors are true.'), nl,
 	write('You asked around about the treasure and you heard that it was somewhere '), write(Hint),nl, nl,
