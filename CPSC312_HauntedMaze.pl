@@ -78,6 +78,7 @@ connected(up, garden, balcony).
 :- dynamic current_room/1.
 :- dynamic treasure_room/1.
 :- dynamic treasure_found/0.
+:- dynamic connected/3.
 
 
 % Define a predicate to print the current location
@@ -108,6 +109,16 @@ process_input([search, room]) :-
     % Check if the current room is the treasure room
     current_room(Current),
     treasure_room(TreasureRoom),
+	(Current = guest_bedroom; Current = library -> 
+		assert(connected(passage, guest_bedroom, library)),
+		assert(connected(passage, library, guest_bedroom)),
+		write('You found a secret passage, type ''go passage'' to see where it goes'), nl;
+		nl),
+	(Current = servants_quarters; Current = kitchen -> 
+		assert(connected(passage, servants_quarters, kitchen)),
+		assert(connected(passage, kitchen, servants_quarters)),
+		write('You found a secret passage, type ''go passage'' to see where it goes'), nl;
+		nl),
     (Current = TreasureRoom ->
         assert(treasure_found),
         write('You have found the treasure, you better get out of here before it''s too late!');
@@ -150,6 +161,7 @@ play :-
 	(treasure_found -> retract(treasure_found); nl),
 	retractall(current_room(_)),
 	retractall(treasure_room(_)),
+	retractall(connected(passage, _, _)), 
 	findall(Room, room(Room, _, _, _), Rooms),
     random_member(TreasureRoom, Rooms),
     assertz(treasure_room(TreasureRoom)),
